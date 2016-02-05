@@ -16,8 +16,8 @@
 		return sha1(implode(",", $pluginhost->get_plugin_names()) . $tmp);
 	}
 
-	function update_feedbrowser_cache() {
-
+  function update_feedbrowser_cache() {
+    #phpdbg_break;
 		$result = db_query("SELECT feed_url, site_url, title, COUNT(id) AS subscribers
 	  		FROM ttrss_feeds WHERE (SELECT COUNT(id) = 0 FROM ttrss_feeds AS tf
 				WHERE tf.feed_url = ttrss_feeds.feed_url
@@ -25,11 +25,9 @@
 				GROUP BY feed_url, site_url, title ORDER BY subscribers DESC LIMIT 1000");
 
 		db_query("BEGIN");
-
 		db_query("DELETE FROM ttrss_feedbrowser_cache");
 
 		$count = 0;
-
 		while ($line = db_fetch_assoc($result)) {
 			$subscribers = db_escape_string($line["subscribers"]);
 			$feed_url = db_escape_string($line["feed_url"]);
@@ -40,21 +38,15 @@
 				ttrss_feedbrowser_cache WHERE feed_url = '$feed_url'");
 
 			if (db_num_rows($tmp_result) == 0) {
-
 				db_query("INSERT INTO ttrss_feedbrowser_cache
 					(feed_url, site_url, title, subscribers) VALUES ('$feed_url',
 						'$site_url', '$title', '$subscribers')");
-
 				++$count;
-
 			}
-
 		}
 
 		db_query("COMMIT");
-
 		return $count;
-
 	}
 
 
